@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xavfsiz Hayot — FVV ilovasi (test rejimi)</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#14213D">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  :root{
+    --navy:#14213D;
+    --navy-light:#22335C;
+    --alert:#C1272D;
+    --alert-bg:#FBEAEA;
+    --safe:#1B7A6E;
+    --safe-bg:#E4F2F0;
+    --warn:#C97A1E;
+    --warn-bg:#FBF0DF;
+    --bg:#F6F4EF;
+    --card:#FFFFFF;
+    --line:#E4E1D8;
+    --text:#1E2130;
+    --text-mute:#63677A;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Inter', sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+    padding:24px 12px;
+  }
+  h1,h2,h3,.disp{font-family:'Space Grotesk', sans-serif;}
+  .phone{
+    width:390px;
+    max-width:100%;
+    background:var(--card);
+    border-radius:28px;
+    border:1px solid var(--line);
+    overflow:hidden;
+    box-shadow:0 20px 50px rgba(20,33,61,0.12);
+    display:flex;
+    flex-direction:column;
+    min-height:760px;
+  }
+  .demo-tag{
+    background:var(--navy);
+    color:#fff;
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    text-align:center;
+    padding:6px;
+    font-weight:600;
+  }
+  .topbar{
+    background:var(--navy);
+    color:#fff;
+    padding:16px 18px 20px;
+  }
+  .topbar .row{display:flex; align-items:center; justify-content:space-between;}
+  .topbar .brand{display:flex; align-items:center; gap:8px; font-weight:600; font-size:17px;}
+  .topbar .brand svg{width:22px; height:22px;}
+  .topbar .loc{font-size:12px; color:#B9C2DA; margin-top:4px;}
+  .screen{flex:1; overflow-y:auto; padding:18px; padding-bottom:8px;}
+  .screen.hidden{display:none;}
+
+  .alert-card{
+    background:var(--warn-bg);
+    border:1px solid #EED3A6;
+    border-radius:14px;
+    padding:12px 14px;
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    margin-bottom:16px;
+  }
+  .alert-card .icon{color:var(--warn); font-size:18px; line-height:1;}
+  .alert-card .t{font-size:13px; font-weight:600; color:#7A4A0C;}
+  .alert-card .s{font-size:12px; color:var(--text-mute); margin-top:2px;}
+
+  .sos-btn{
+    width:100%;
+    background:var(--alert);
+    color:#fff;
+    border:none;
+    border-radius:16px;
+    padding:20px;
+    font-size:16px;
+    font-weight:600;
+    font-family:'Space Grotesk', sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    cursor:pointer;
+    margin-bottom:16px;
+    transition:transform .15s ease;
+  }
+  .sos-btn:active{transform:scale(.97);}
+  .sos-btn .sub{display:block; font-size:11px; font-weight:400; opacity:.85; font-family:'Inter';}
+
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
+  .tile{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px 10px;
+    text-align:center;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:500;
+  }
+  .tile .icon{font-size:22px; display:block; margin-bottom:8px;}
+
+  .status-card{
+    background:var(--safe-bg);
+    border:1px solid #BEE0D9;
+    border-radius:14px;
+    padding:12px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:16px;
+    font-size:13px;
+  }
+  .status-card b{color:#0F5148;}
+
+  .btn{
+    border:1px solid var(--line);
+    background:var(--card);
+    border-radius:10px;
+    padding:10px 14px;
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    color:var(--text);
+  }
+  .btn.primary{background:var(--navy); color:#fff; border-color:var(--navy);}
+  .btn.safe{background:var(--safe); color:#fff; border-color:var(--safe);}
+  .btn.block{width:100%;}
+
+  #map{height:220px; border-radius:14px; margin-bottom:12px; border:1px solid var(--line);}
+  .legend{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+  .legend span{font-size:11px; padding:4px 10px; border-radius:8px; font-weight:500;}
+  .legend .l1{background:var(--alert-bg); color:var(--alert);}
+  .legend .l2{background:var(--safe-bg); color:#0F5148;}
+  .legend .l3{background:#E7ECF6; color:var(--navy);}
+
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:12px; font-weight:600; margin-bottom:5px; color:var(--text-mute);}
+  .field select, .field textarea, .field input{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:13px;
+    font-family:inherit;
+    background:#FCFBF8;
+  }
+  .field textarea{min-height:70px; resize:vertical;}
+  .upload-box{
+    border:1.5px dashed var(--line);
+    border-radius:12px;
+    padding:18px;
+    text-align:center;
+    font-size:12px;
+    color:var(--text-mute);
+    cursor:pointer;
+    margin-bottom:12px;
+  }
+  .report-item{
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:10px;
+    font-size:12px;
+  }
+  .report-item .top{display:flex; justify-content:space-between; margin-bottom:4px;}
+  .badge{font-size:10px; font-weight:600; padding:3px 8px; border-radius:20px;}
+  .badge.new{background:var(--warn-bg); color:#7A4A0C;}
+  .badge.progress{background:#E7ECF6; color:var(--navy);}
+  .badge.done{background:var(--safe-bg); color:#0F5148;}
+
+  .accordion{border:1px solid var(--line); border-radius:12px; margin-bottom:8px; overflow:hidden;}
+  .accordion .head{
+    padding:12px 14px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:600;
+    background:#FCFBF8;
+  }
+  .accordion .body{
+    padding:0 14px;
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .2s ease, padding .2s ease;
+    font-size:12.5px;
+    color:var(--text-mute);
+    line-height:1.6;
+  }
+  .accordion.open .body{padding:0 14px 14px; max-height:400px;}
+  .accordion .chevron{transition:transform .2s ease;}
+  .accordion.open .chevron{transform:rotate(90deg);}
+
+  .avatar{
+    width:48px; height:48px; border-radius:50%;
+    background:var(--navy); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:600; font-family:'Space Grotesk';
+  }
+  .profile-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 0; border-bottom:1px solid var(--line);
+    font-size:13px;
+  }
+  .profile-row:last-child{border-bottom:none;}
+  .lang-toggle{display:flex; gap:6px;}
+  .lang-toggle button{
+    border:1px solid var(--line); background:#fff; border-radius:8px;
+    padding:5px 10px; font-size:11px; cursor:pointer; font-weight:600;
+  }
+  .lang-toggle button.active{background:var(--navy); color:#fff; border-color:var(--navy);}
+
+  .nav{
+    display:flex;
+    border-top:1px solid var(--line);
+    background:var(--card);
+  }
+  .nav button{
+    flex:1;
+    background:none;
+    border:none;
+    padding:10px 4px 12px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    font-size:10.5px;
+    color:var(--text-mute);
+    cursor:pointer;
+  }
+  .nav button.active{color:var(--navy); font-weight:600;}
+  .toast{
+    position:fixed;
+    bottom:26px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--navy);
+    color:#fff;
+    padding:12px 20px;
+    border-radius:12px;
+    font-size:13px;
+    opacity:0;
+    transition:all .25s ease;
+    pointer-events:none;
+    z-index:999;
+    white-space:nowrap;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .contact-item{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 0; border-bottom:1px solid var(--line); font-size:13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="demo-tag">Test rejimi — namoyish uchun sun'iy ma'lumotlar</div>
+  <div class="topbar">
+    <div class="row">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 6v6c0 5 4 9 9 10 5-1 9-5 9-10V6l-9-4Z"/><path d="m9 12 2 2 4-4"/></svg>
+        Xavfsiz Hayot
+      </div>
+      <span id="clock" style="font-size:12px; color:#B9C2DA;"></span>
+    </div>
+    <div class="loc" id="locLabel">Joylashuv aniqlanmoqda…</div>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen" id="screen-home">
+    <div class="alert-card">
+      <span class="icon">&#9888;</span>
+      <div>
+        <div class="t">Jizzax viloyati — kuchli shamol ogohlantirishi</div>
+        <div class="s">Bugun 18:00–23:00. Ochiq maydonlarda ehtiyot bo'ling.</div>
+      </div>
+    </div>
+
+    <button class="sos-btn" id="sosBtn">
+      &#9742;&nbsp; SOS — favqulodda chaqiruv
+      <span class="sub">Bosib turing (3 soniya)</span>
+    </button>
+
+    <div class="grid2">
+      <div class="tile" data-goto="aid"><span class="icon">&#10010;</span>Birinchi yordam</div>
+      <div class="tile" data-goto="report"><span class="icon">&#128247;</span>Hodisa haqida xabar</div>
+    </div>
+
+    <div class="status-card">
+      <span>&#128101; Oila a'zolari: <b id="famStatus">3 kishi xavfsiz</b></span>
+      <button class="btn" id="imSafeBtn">Men xavfsizman</button>
+    </div>
+
+    <div class="field">
+      <label>So'nggi ogohlantirishlar</label>
+      <div id="alertsFeed"></div>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div class="screen hidden" id="screen-map">
+    <div id="map"></div>
+    <div class="legend">
+      <span class="l1">&#9679; Xavf zonasi</span>
+      <span class="l2">&#9679; Boshpana</span>
+      <span class="l3">&#9679; Kasalxona</span>
+    </div>
+    <button class="btn block" id="locateBtn">Mening joylashuvimni ko'rsatish</button>
+  </div>
+
+  <!-- REPORT -->
+  <div class="screen hidden" id="screen-report">
+    <h3 style="margin-bottom:12px;">Hodisa haqida xabar berish</h3>
+    <form id="reportForm">
+      <div class="field">
+        <label>Hodisa turi</label>
+        <select id="repType">
+          <option>Yong'in</option>
+          <option>Suv toshqini / quvur yorilishi</option>
+          <option>Yo'l halokati</option>
+          <option>Buzilgan infratuzilma</option>
+          <option>Boshqa</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Tavsif</label>
+        <textarea id="repDesc" placeholder="Nima sodir bo'lganini qisqacha yozing..."></textarea>
+      </div>
+      <div class="upload-box" id="uploadBox">&#128247; Foto/video biriktirish uchun bosing</div>
+      <div class="field">
+        <label>Joylashuv</label>
+        <input type="text" id="repLoc" value="Aniqlangan: Jizzax shahri" readonly>
+      </div>
+      <button type="submit" class="btn primary block">Xabarni yuborish</button>
+    </form>
+    <div style="margin-top:20px;">
+      <label style="font-size:12px; font-weight:600; color:var(--text-mute); display:block; margin-bottom:8px;">Mening xabarlarim</label>
+      <div id="reportList"></div>
+    </div>
+  </div>
+
+  <!-- FIRST AID -->
+  <div class="screen hidden" id="screen-aid">
+    <h3 style="margin-bottom:12px;">Birinchi yordam yo'riqnomalari</h3>
+    <div id="accordionList"></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen hidden" id="screen-profile">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
+      <div class="avatar">AK</div>
+      <div>
+        <div style="font-weight:600;">Aziz Karimov</div>
+        <div style="font-size:12px; color:var(--text-mute);">Jizzax shahri · Qon guruhi: A(II) Rh+</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Til</label>
+      <div class="lang-toggle">
+        <button class="active" data-lang="uz">O'zbek</button>
+        <button data-lang="ru">Русский</button>
+        <button data-lang="en">English</button>
+      </div>
+    </div>
+
+    <div style="margin:18px 0;">
+      <label style="font-size:12px; font-weight:600; color:var(--text-mute); display:block; margin-bottom:6px;">Favqulodda kontaktlar</label>
+      <div id="contactList"></div>
+      <button class="btn" style="margin-top:8px; width:100%;" id="addContactBtn">+ Kontakt qo'shish</button>
+    </div>
+
+    <div class="profile-row">
+      <span>Push-bildirishnomalar</span>
+      <input type="checkbox" checked>
+    </div>
+    <div class="profile-row">
+      <span>Joylashuvni oila bilan ulashish</span>
+      <input type="checkbox" checked>
+    </div>
+    <div class="profile-row">
+      <span>Ko'ngillilar tarmog'iga qo'shilish</span>
+      <input type="checkbox">
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="active" data-tab="home"><span>&#127968;</span>Bosh sahifa</button>
+    <button data-tab="map"><span>&#128506;</span>Xarita</button>
+    <button data-tab="report"><span>&#128276;</span>Xabar</button>
+    <button data-tab="aid"><span>&#10010;</span>Yordam</button>
+    <button data-tab="profile"><span>&#128100;</span>Profil</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ---------- umumiy yordamchi funksiyalar ---------- */
+function toast(msg, ms=2600){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), ms);
+}
+function pad(n){return n.toString().padStart(2,'0');}
+setInterval(()=>{
+  const d = new Date();
+  document.getElementById('clock').textContent = pad(d.getHours())+':'+pad(d.getMinutes());
+},1000);
+
+/* ---------- tab navigatsiya ---------- */
+const tabs = document.querySelectorAll('.nav button');
+const screens = document.querySelectorAll('.screen');
+function showTab(name){
+  screens.forEach(s => s.classList.toggle('hidden', s.id !== 'screen-'+name));
+  tabs.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  if(name === 'map') setTimeout(()=> map.invalidateSize(), 50);
+}
+tabs.forEach(b => b.addEventListener('click', ()=> showTab(b.dataset.tab)));
+document.querySelectorAll('[data-goto]').forEach(el=>{
+  el.addEventListener('click', ()=> showTab(el.dataset.goto));
+});
+
+/* ---------- geolokatsiya (haqiqiy brauzer API) ---------- */
+let userLatLng = [40.1158, 67.8422]; // Jizzax markazi - standart qiymat
+function requestLocation(){
+  if(!navigator.geolocation){
+    document.getElementById('locLabel').textContent = 'Joylashuv qo\'llab-quvvatlanmaydi';
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    userLatLng = [pos.coords.latitude, pos.coords.longitude];
+    document.getElementById('locLabel').textContent =
+      'Joylashuv: '+userLatLng[0].toFixed(4)+', '+userLatLng[1].toFixed(4);
+    if(window.userMarker){ userMarker.setLatLng(userLatLng); map.panTo(userLatLng); }
+  }, err=>{
+    document.getElementById('locLabel').textContent = 'Jizzax shahri (taxminiy)';
+  }, {timeout:5000});
+}
+requestLocation();
+
+/* ---------- SOS tugmasi: 3 soniya bosib turish ---------- */
+const sosBtn = document.getElementById('sosBtn');
+let holdTimer = null;
+function startHold(){
+  holdTimer = setTimeout(()=>{
+    toast('SOS signali yuborildi — eng yaqin FVV bo\'limi xabardor qilindi');
+    sosBtn.style.background = '#7A171B';
+    setTimeout(()=> sosBtn.style.background = '', 800);
+  }, 3000);
+}
+function cancelHold(){ clearTimeout(holdTimer); }
+sosBtn.addEventListener('mousedown', startHold);
+sosBtn.addEventListener('touchstart', startHold);
+['mouseup','mouseleave','touchend'].forEach(ev=> sosBtn.addEventListener(ev, cancelHold));
+
+/* ---------- "Men xavfsizman" ---------- */
+document.getElementById('imSafeBtn').addEventListener('click', ()=>{
+  document.getElementById('famStatus').textContent = '4 kishi xavfsiz (siz qo\'shildingiz)';
+  toast('Holatingiz oila a\'zolariga yuborildi: "Men xavfsizman"');
+});
+
+/* ---------- ogohlantirishlar lentasi (mock ma'lumot) ---------- */
+const alerts = [
+  {t:'Kuchli shamol ogohlantirishi', s:'Jizzax viloyati · bugun', level:'warn'},
+  {t:'Yo\'l ta\'mirlash ishlari', s:'Sharof Rashidov ko\'chasi · 2 kun oldin', level:'info'},
+  {t:'Suv ta\'minoti tiklandi', s:'Do\'stlik mahallasi · 3 kun oldin', level:'safe'},
+];
+const feed = document.getElementById('alertsFeed');
+alerts.forEach(a=>{
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:12.5px;';
+  div.innerHTML = `<span>${a.t}</span><span style="color:var(--text-mute);">${a.s}</span>`;
+  feed.appendChild(div);
+});
+
+/* ---------- xarita (Leaflet + OpenStreetMap) ---------- */
+const map = L.map('map', {zoomControl:false}).setView(userLatLng, 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap',
+  maxZoom: 18
+}).addTo(map);
+
+const hazardIcon = L.divIcon({className:'', html:'<div style="width:14px;height:14px;background:#C1272D;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3);"></div>'});
+const shelterIcon = L.divIcon({className:'', html:'<div style="width:14px;height:14px;background:#1B7A6E;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3);"></div>'});
+const hospitalIcon = L.divIcon({className:'', html:'<div style="width:14px;height:14px;background:#14213D;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.3);"></div>'});
+
+const mockPoints = [
+  {ll:[40.1210,67.8520], icon:hazardIcon, label:'Xavf zonasi: ko\'chki xatari'},
+  {ll:[40.1090,67.8300], icon:shelterIcon, label:'Vaqtinchalik boshpana — 15-maktab'},
+  {ll:[40.1250,67.8400], icon:hospitalIcon, label:'Jizzax viloyat kasalxonasi'},
+  {ll:[40.1050,67.8450], icon:shelterIcon, label:'Boshpana — sport majmuasi'},
+];
+mockPoints.forEach(p=>{
+  L.marker(p.ll, {icon:p.icon}).addTo(map).bindPopup(p.label);
+});
+
+let userMarker = L.circleMarker(userLatLng, {radius:8, color:'#fff', weight:2, fillColor:'#2E7DD1', fillOpacity:1}).addTo(map).bindPopup('Siz shu yerdasiz');
+window.userMarker = userMarker;
+
+document.getElementById('locateBtn').addEventListener('click', ()=>{
+  requestLocation();
+  map.panTo(userLatLng);
+  toast('Joylashuv yangilandi');
+});
+
+/* ---------- hodisa haqida xabar berish (test rejimi, xotirada saqlanadi) ---------- */
+const reports = [];
+const reportList = document.getElementById('reportList');
+function renderReports(){
+  reportList.innerHTML = '';
+  if(reports.length === 0){
+    reportList.innerHTML = '<div style="font-size:12px;color:var(--text-mute);">Hali xabar yuborilmagan</div>';
+    return;
+  }
+  reports.forEach(r=>{
+    const div = document.createElement('div');
+    div.className = 'report-item';
+    div.innerHTML = `
+      <div class="top">
+        <b>${r.type}</b>
+        <span class="badge ${r.status}">${r.statusLabel}</span>
+      </div>
+      <div>${r.desc || '(tavsifsiz)'}</div>
+      <div style="color:var(--text-mute); margin-top:4px;">${r.time}</div>
+    `;
+    reportList.appendChild(div);
+  });
+}
+renderReports();
+
+document.getElementById('uploadBox').addEventListener('click', ()=>{
+  document.getElementById('uploadBox').textContent = '✓ 1 ta fayl biriktirildi (test)';
+});
+
+document.getElementById('reportForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const type = document.getElementById('repType').value;
+  const desc = document.getElementById('repDesc').value;
+  reports.unshift({
+    type, desc,
+    status:'new', statusLabel:'Qabul qilindi',
+    time: 'Hozirgina'
+  });
+  renderReports();
+  document.getElementById('repDesc').value = '';
+  document.getElementById('uploadBox').textContent = '📷 Foto/video biriktirish uchun bosing';
+  toast('Xabar tegishli xizmatga yuborildi');
+
+  setTimeout(()=>{
+    if(reports[0]){ reports[0].status='progress'; reports[0].statusLabel='Jarayonda'; renderReports(); }
+  }, 4000);
+});
+
+/* ---------- birinchi yordam yo'riqnomalari ---------- */
+const guides = [
+  {t:'Zilzila vaqtida', b:'Darhol "Egil, yashirin, mahkam ushla" qoidasiga amal qiling: stol tagiga eging, boshingizni himoya qiling. Derazadan va shkaflardan uzoqlashing. Silkinish to\'xtagandan so\'ng, ehtiyotkorlik bilan binodan chiqing, liftdan foydalanmang.'},
+  {t:'Suv toshqinida', b:'Baland joyga chiqing, oqayotgan suvdan yurib yoki avtomobilda o\'tishga urinmang — 15 sm suv ham yiqitib yuborishi mumkin. Elektr asboblarini o\'chiring. Rasmiy xizmatlarning ko\'rsatmalariga amal qiling.'},
+  {t:'Yong\'in paytida', b:'Tutun past bo\'lgani uchun emaklab harakatlaning. Og\'iz-burningizni nam mato bilan yoping. Yopiq eshikka qo\'l tekkizib ko\'ring — issiq bo\'lsa, boshqa yo\'l izlang. Liftdan foydalanmang.'},
+  {t:'Yurak to\'xtashida (BYUR)', b:'112 raqamiga qo\'ng\'iroq qiling. Ko\'krak qafasining markaziga, daqiqasiga 100–120 marta, 5–6 sm chuqurlikda bosing. Tibbiy yordam kelguncha to\'xtamang.'},
+  {t:'Qattiq qon ketishda', b:'Yarani toza mato bilan bosib turing, jarohatlangan joyni yurakdan yuqori ko\'taring. Bosimni to\'xtatmang, mato qonga to\'lsa, ustidan yana bir qatlam qo\'ying.'},
+];
+const accWrap = document.getElementById('accordionList');
+guides.forEach((g,i)=>{
+  const div = document.createElement('div');
+  div.className = 'accordion';
+  div.innerHTML = `
+    <div class="head">
+      <span>${g.t}</span>
+      <span class="chevron">&#8250;</span>
+    </div>
+    <div class="body">${g.b}</div>
+  `;
+  div.querySelector('.head').addEventListener('click', ()=> div.classList.toggle('open'));
+  accWrap.appendChild(div);
+});
+
+/* ---------- profil: til almashtirish (demo) ---------- */
+document.querySelectorAll('.lang-toggle button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.lang-toggle button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    toast('Til o\'zgartirildi: '+btn.textContent+' (demo rejimida faqat interfeys elementlari)');
+  });
+});
+
+/* ---------- favqulodda kontaktlar ---------- */
+let contacts = [
+  {name:'Dilnoza Karimova', rel:'Xotini'},
+  {name:'Sherzod Karimov', rel:'Akasi'},
+];
+const contactList = document.getElementById('contactList');
+function renderContacts(){
+  contactList.innerHTML = '';
+  contacts.forEach((c,i)=>{
+    const div = document.createElement('div');
+    div.className = 'contact-item';
+    div.innerHTML = `<span>${c.name} <span style="color:var(--text-mute);">· ${c.rel}</span></span><span style="color:var(--alert); cursor:pointer;" data-i="${i}">O'chirish</span>`;
+    div.querySelector('[data-i]').addEventListener('click', ()=>{
+      contacts.splice(i,1); renderContacts();
+    });
+    contactList.appendChild(div);
+  });
+}
+renderContacts();
+document.getElementById('addContactBtn').addEventListener('click', ()=>{
+  const name = prompt('Kontakt ismi:');
+  if(!name) return;
+  const rel = prompt('Munosabati (masalan, ota, do\'st):') || 'Yaqin kishi';
+  contacts.push({name, rel});
+  renderContacts();
+  toast('Kontakt qo\'shildi');
+});
+
+/* ---------- PWA: service worker ro'yxatdan o'tkazish ---------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
