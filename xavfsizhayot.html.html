@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xavfsiz Hayot — FVV ilovasi (test rejimi)</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#14213D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+<div class="phone">
+  <div class="demo-tag" data-i18n="demo">Test rejimi — namoyish uchun sun'iy ma'lumotlar</div>
+  <div class="topbar">
+    <div class="row">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 6v6c0 5 4 9 9 10 5-1 9-5 9-10V6l-9-4Z"/><path d="m9 12 2 2 4-4"/></svg>
+        <span data-i18n="appName">Xavfsiz Hayot</span>
+      </div>
+      <span id="clock" style="font-size:12px; color:#B9C2DA;"></span>
+    </div>
+    <div class="loc" id="locLabel">Joylashuv aniqlanmoqda...</div>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen" id="screen-home">
+    <div class="alert-card" id="locationAlert">
+      <span class="icon" id="locationAlertIcon">&#9888;</span>
+      <div>
+        <div class="t" id="locationAlertTitle">Joylashuv ob-havosi yuklanmoqda...</div>
+        <div class="s" id="locationAlertInfo"></div>
+        <div class="s avalanche-note" id="avalancheNote"></div>
+      </div>
+    </div>
+
+    <div class="alert-card quake-card" id="quakeAlert" role="alert" aria-live="assertive" hidden>
+      <span class="icon" aria-hidden="true">&#9888;</span>
+      <div class="quake-copy">
+        <div class="t" id="quakeTitle"></div>
+        <div class="s" id="quakeInfo"></div>
+      </div>
+      <button class="quake-dismiss" id="quakeDismissBtn" type="button" aria-label="Zilzila ogohlantirishini yopish" data-i18n-aria="quakeDismiss">&times;</button>
+    </div>
+
+    <button class="sos-btn" id="sosBtn">
+      &#9742;&nbsp; <span data-i18n="sosButton">SOS — favqulodda chaqiruv</span>
+      <span class="sub" data-i18n="hold">Bosib turing (3 soniya)</span>
+    </button>
+
+    <div class="grid2">
+      <div class="tile" data-goto="aid"><span class="icon">&#10010;</span><span data-i18n="firstAid">Birinchi yordam</span></div>
+      <div class="tile" data-goto="report"><span class="icon">&#128247;</span><span data-i18n="incident">Hodisa haqida xabar</span></div>
+    </div>
+
+    <div class="status-card">
+      <span>&#128101; <span data-i18n="familyMembers">Oila a'zolari</span>: <b id="famStatus" data-i18n="safeCount">3 kishi xavfsiz</b></span>
+      <button class="btn" id="imSafeBtn" data-i18n="imSafe">Men xavfsizman</button>
+    </div>
+
+    <div class="field">
+      <label data-i18n="recentAlerts">So'nggi ogohlantirishlar</label>
+      <div id="alertsFeed"></div>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div class="screen hidden" id="screen-map">
+    <div class="map-wrap">
+      <iframe id="mapFrame" title="Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+      <div class="map-message" id="mapMessage" role="status"></div>
+    </div>
+    <p class="map-note" id="mapNote" data-i18n="mapNote">Google xaritasi. Joylashuvingizni ko'rsatish uchun brauzer ruxsatini bering.</p>
+    <button class="btn block" id="locateBtn" data-i18n="locate">Mening joylashuvimni ko'rsatish</button>
+    <button class="btn block ip-locate-btn" id="ipLocateBtn" type="button" data-i18n="ipLocate" hidden>Internet orqali taxminiy joylashuvni aniqlash</button>
+    <p class="map-note" id="ipLocationPrivacy" data-i18n="ipLocationPrivacy" hidden>Bu usul taxminiy joylashuv uchun IP manzilingizni ipwho.is xizmatiga yuboradi.</p>
+    <button class="btn block map-share-btn" id="sendLocationBtn" type="button" data-i18n="sendLocationToFamily">Joylashuvni oilaviy chatga yuborish</button>
+    <section class="weather-panel" id="weatherPanel" aria-live="polite" aria-busy="true">
+      <div class="weather-heading" data-i18n="weather">Ob-havo</div>
+      <div class="weather-current" id="weatherCurrent" data-i18n="weatherLoading">Ob-havo yuklanmoqda...</div>
+    </section>
+  </div>
+
+  <!-- FAMILY CHAT -->
+  <div class="screen hidden" id="screen-chat">
+    <h3 class="chat-title" data-i18n="familyChat">Oila bilan suhbat</h3>
+    <div class="chat-people" id="chatPeople" aria-label="Suhbatni tanlang"></div>
+    <h4 id="chatHeading" style="margin-bottom:8px;font-size:14px;">Oilaviy guruh</h4>
+    <p class="chat-notice" data-i18n="chatNotice">Namoyish rejimi: xabarlar faqat shu qurilmada saqlanadi va oila a'zolariga yuborilmaydi.</p>
+    <button class="btn block live-location-btn" id="liveLocationBtn" type="button" data-i18n="liveLocation">Jonli joylashuvni ulashish</button>
+    <div class="chat-log" id="chatLog" aria-live="polite"></div>
+    <form class="chat-form" id="chatForm">
+      <textarea id="chatInput" rows="1" maxlength="1000" placeholder="Xabar yozing..." aria-label="Xabar matni" data-i18n-placeholder="write" data-i18n-aria="messageText" required></textarea>
+      <button class="btn primary" type="submit" aria-label="Xabarni yuborish" data-i18n-aria="send" data-i18n="send">Yuborish</button>
+    </form>
+  </div>
+
+  <!-- REPORT -->
+  <div class="screen hidden" id="screen-report">
+    <h3 style="margin-bottom:12px;" data-i18n="reportTitle">Hodisa haqida xabar berish</h3>
+    <form id="reportForm">
+      <div class="field">
+        <label data-i18n="incidentType">Hodisa turi</label>
+        <select id="repType">
+          <option value="fire" data-i18n="fire">Yong'in</option>
+          <option value="flood" data-i18n="flood">Suv toshqini / quvur yorilishi</option>
+          <option value="traffic" data-i18n="traffic">Yo'l halokati</option>
+          <option value="infrastructure" data-i18n="infrastructure">Buzilgan infratuzilma</option>
+          <option value="other" data-i18n="other">Boshqa</option>
+        </select>
+      </div>
+      <div class="field">
+        <label data-i18n="description">Tavsif</label>
+        <textarea id="repDesc" placeholder="Nima sodir bo'lganini qisqacha yozing..." data-i18n-placeholder="describe"></textarea>
+      </div>
+      <div class="upload-box" id="uploadBox" data-i18n="attach">&#128247; Foto/video biriktirish uchun bosing</div>
+      <div class="field">
+        <label data-i18n="location">Joylashuv</label>
+        <input type="text" id="repLoc" value="Joylashuv hali aniqlanmadi" readonly>
+      </div>
+      <button type="submit" class="btn primary block" data-i18n="submit">Xabarni yuborish</button>
+    </form>
+    <div style="margin-top:20px;">
+      <label style="font-size:12px; font-weight:600; color:var(--text-mute); display:block; margin-bottom:8px;" data-i18n="myReports">Mening xabarlarim</label>
+      <div id="reportList"></div>
+    </div>
+  </div>
+
+  <!-- FIRST AID -->
+  <div class="screen hidden" id="screen-aid">
+    <h3 style="margin-bottom:12px;" data-i18n="aidTitle">Birinchi yordam yo'riqnomalari</h3>
+    <div id="accordionList"></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen hidden" id="screen-profile">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
+      <div class="avatar">JA</div>
+      <div>
+        <div style="font-weight:600;" data-i18n="userName">Jaloliddin Abubakirov</div>
+        <div style="font-size:12px; color:var(--text-mute);"><span data-i18n="city">Jizzax shahri</span> · <span data-i18n="blood">Qon guruhi</span>: A(II) Rh+</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label data-i18n="language">Til</label>
+      <div class="lang-toggle">
+        <button class="active" data-lang="uz">O'zbek</button>
+        <button data-lang="ru">Русский</button>
+        <button data-lang="en">English</button>
+      </div>
+    </div>
+
+    <div style="margin:18px 0;">
+      <label style="font-size:12px; font-weight:600; color:var(--text-mute); display:block; margin-bottom:6px;" data-i18n="contacts">Favqulodda kontaktlar</label>
+      <div id="contactList"></div>
+      <button class="btn" style="margin-top:8px; width:100%;" id="addContactBtn" data-i18n="addContact">+ Kontakt qo'shish</button>
+    </div>
+
+    <div class="profile-row">
+      <span data-i18n="notifications">Push-bildirishnomalar</span>
+      <input type="checkbox" checked>
+    </div>
+    <div class="profile-row">
+      <span data-i18n="share">Joylashuvni oila bilan ulashish</span>
+      <input type="checkbox" checked>
+    </div>
+    <div class="profile-row">
+      <span data-i18n="volunteers">Ko'ngillilar tarmog'iga qo'shilish</span>
+      <input type="checkbox">
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="active" data-tab="home"><span>&#127968;</span><span data-i18n="home">Bosh sahifa</span></button>
+    <button data-tab="map"><span>&#128506;</span><span data-i18n="map">Xarita</span></button>
+    <button data-tab="chat"><span>&#128172;</span><span data-i18n="family">Oila</span></button>
+    <button data-tab="report"><span>&#128276;</span><span data-i18n="report">Xabar</span></button>
+    <button data-tab="aid"><span>&#10010;</span><span data-i18n="help">Yordam</span></button>
+    <button data-tab="profile"><span>&#128100;</span><span data-i18n="profile">Profil</span></button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script defer src="./app.js"></script>
+</body>
+</html>
